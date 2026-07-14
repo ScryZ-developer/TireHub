@@ -73,6 +73,8 @@ export interface User {
   longitude?: number;
   sellerId?: string;
   seller?: Seller;
+  /** Local profile photo (data URL or remote URL). */
+  avatarUrl?: string;
   createdAt: string;
 }
 
