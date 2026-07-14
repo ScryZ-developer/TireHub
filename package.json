@@ -1,0 +1,23 @@
+{
+  "name": "tirehub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TireHub — маркетплейс шин и дисков",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=@tirehub/web",
+    "dev:core": "npm run start:dev --workspace=@tirehub/core-service",
+    "dev:catalog": "npm run start:dev --workspace=@tirehub/catalog-service",
+    "dev:consumer": "npm run start:dev --workspace=@tirehub/consumer-service",
+    "dev:recommendation": "npm run start:dev --workspace=@tirehub/recommendation-service",
+    "build": "npm run build --workspaces --if-present",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
