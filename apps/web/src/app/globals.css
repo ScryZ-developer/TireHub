@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-text-primary antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-button bg-primary px-4 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50;
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 20px rgba(21, 101, 192, 0.15);
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center rounded-button bg-accent px-4 py-2.5 text-sm font-medium text-white transition-all duration-300 hover:bg-accent/90 focus:outline-none focus:ring-2 focus:ring-accent/50;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-button border border-primary px-4 py-2.5 text-sm font-medium text-primary transition-all duration-300 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+
+  .card {
+    @apply rounded-card bg-surface shadow-card transition-all duration-300;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .chip {
+    @apply inline-flex items-center rounded-chip px-3 py-1.5 text-sm font-medium transition-all duration-200;
+  }
+
+  .chip-active {
+    @apply chip bg-primary text-white shadow-sm;
+  }
+
+  .chip-inactive {
+    @apply chip bg-surface text-text-secondary ring-1 ring-gray-200 hover:ring-primary/40 hover:text-primary;
+  }
+
+  .input-field {
+    @apply w-full rounded-button border border-gray-200 bg-surface px-4 py-2.5 text-sm text-text-primary transition-all duration-200 placeholder:text-text-secondary/60 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20;
+  }
+
+  .skeleton {
+    @apply animate-pulse rounded-button bg-gray-200/80;
+  }
+}
