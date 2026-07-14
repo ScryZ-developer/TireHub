@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { ImagePlus, X, Loader2 } from 'lucide-react';
 import {
   ProductType,
   TireSeason,
@@ -14,12 +15,16 @@ import type { Listing } from '@tirehub/shared';
 import { useAuthStore, useMyListingsStore } from '@/stores';
 import { CITIES, TIRE_IMAGES, WHEEL_IMAGES } from '@/lib/marketplace';
 import { PCD_OPTIONS } from '@/lib/products';
+import { fileToListingPhoto } from '@/lib/image';
 import { FadeIn } from '@/components/ui/motion';
+
+const MAX_PHOTOS = 8;
 
 export default function NewListingPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const addListing = useMyListingsStore((s) => s.addListing);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) router.replace('/login');
@@ -40,14 +45,52 @@ export default function NewListingPage() {
     season: '' as TireSeason | '',
     description: '',
   });
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   if (!user) return null;
 
   const seller = user.seller;
   const sellerId = user.sellerId ?? `seller-user-${user.id}`;
 
+  const handlePhotos = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setPhotoError(null);
+    const remaining = MAX_PHOTOS - photos.length;
+    if (remaining <= 0) {
+      setPhotoError(`Можно добавить не больше ${MAX_PHOTOS} фото`);
+      return;
+    }
+
+    const selected = Array.from(files).slice(0, remaining);
+    setUploading(true);
+    try {
+      const next: string[] = [];
+      for (const file of selected) {
+        next.push(await fileToListingPhoto(file));
+      }
+      setPhotos((prev) => [...prev, ...next]);
+      if (files.length > remaining) {
+        setPhotoError(`Добавлены только ${remaining} фото (лимит ${MAX_PHOTOS})`);
+      }
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Не удалось загрузить фото');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+    setPhotoError(null);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const fallback =
+      form.type === ProductType.TIRE ? TIRE_IMAGES.classic : WHEEL_IMAGES.silver;
     const listing: Listing = {
       id: `listing-user-${Date.now()}`,
       sellerId,
@@ -69,9 +112,7 @@ export default function NewListingPage() {
       price: Number(form.price),
       quantity: Number(form.quantity),
       city: form.city,
-      imageUrls: [
-        form.type === ProductType.TIRE ? TIRE_IMAGES.classic : WHEEL_IMAGES.silver,
-      ],
+      imageUrls: photos.length > 0 ? photos : [fallback],
       status: ListingStatus.ACTIVE,
       viewsCount: 0,
       brand: form.brand || undefined,
@@ -110,6 +151,66 @@ export default function NewListingPage() {
             {' · '}{seller.city}
           </p>
         )}
+
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text-secondary">
+            Фото <span className="font-normal text-text-secondary/70">(до {MAX_PHOTOS})</span>
+          </label>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {photos.map((src, index) => (
+              <div
+                key={`${index}-${src.slice(0, 32)}`}
+                className="group relative aspect-square overflow-hidden rounded-card bg-gray-100 ring-1 ring-gray-200"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt={`Фото ${index + 1}`} className="h-full w-full object-cover" />
+                {index === 0 && (
+                  <span className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                    Главное
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => removePhoto(index)}
+                  className="absolute right-1.5 top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-100 transition hover:bg-red-500 sm:opacity-0 sm:group-hover:opacity-100"
+                  aria-label="Удалить фото"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+
+            {photos.length < MAX_PHOTOS && (
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={() => fileInputRef.current?.click()}
+                className="flex aspect-square flex-col items-center justify-center gap-1.5 rounded-card border-2 border-dashed border-gray-300 bg-background text-text-secondary transition hover:border-primary hover:text-primary disabled:opacity-60"
+              >
+                {uploading ? (
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                ) : (
+                  <>
+                    <ImagePlus className="h-6 w-6" />
+                    <span className="text-xs font-medium">Добавить</span>
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+            multiple
+            className="hidden"
+            onChange={(e) => handlePhotos(e.target.files)}
+          />
+          {photoError && <p className="mt-2 text-sm text-red-500">{photoError}</p>}
+          <p className="mt-2 text-xs text-text-secondary">
+            JPEG, PNG или WebP. Без фото подставится стандартная картинка.
+          </p>
+        </div>
 
         <Field label="Название / заголовок" required>
           <input
@@ -251,10 +352,10 @@ export default function NewListingPage() {
         </Field>
 
         <p className="rounded-button bg-weather-warning px-4 py-3 text-xs text-text-secondary">
-          Объявление публикуется локально (демо). После подключения backend оно появится в общем каталоге после модерации.
+          Объявление сохраняется в вашем аккаунте. Фото сжимаются автоматически.
         </p>
 
-        <button type="submit" className="btn-primary w-full py-3 text-base">
+        <button type="submit" disabled={uploading} className="btn-primary w-full py-3 text-base">
           Опубликовать объявление
         </button>
       </motion.form>
