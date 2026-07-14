@@ -11,6 +11,8 @@ import {
   CITIES,
 } from '@/lib/marketplace';
 import { PCD_OPTIONS, FILTER_WIDTHS, FILTER_PROFILES, FILTER_DIAMETERS } from '@/lib/products';
+import { Search } from 'lucide-react';
+import { SearchBar } from '@/components/search/search-bar';
 import { FadeIn } from '@/components/ui/motion';
 import clsx from 'clsx';
 
@@ -65,9 +67,31 @@ export default function CatalogPage() {
   );
 
   const filteredListings = useMemo(() => {
+    const q = query.trim().toLowerCase();
     let result = allListings.filter((l) => {
       if (l.type !== type) return false;
-      if (query && !l.title.toLowerCase().includes(query.toLowerCase())) return false;
+      if (q) {
+        const size =
+          l.attributes?.width && l.attributes?.profile && l.attributes?.diameter
+            ? `${l.attributes.width}/${l.attributes.profile} r${l.attributes.diameter}`
+            : '';
+        const haystack = [
+          l.title,
+          l.brand,
+          l.description,
+          l.city,
+          l.seller?.name,
+          l.attributes?.pcd,
+          size,
+          l.attributes?.diameter != null ? `r${l.attributes.diameter}` : '',
+        ]
+          .filter(Boolean)
+          .join(' ')
+          .toLowerCase();
+        if (!haystack.includes(q) && !q.split(/\s+/).every((part) => haystack.includes(part))) {
+          return false;
+        }
+      }
       if (season && l.attributes?.season !== season) return false;
       if (width && l.attributes?.width !== width) return false;
       if (profile && l.attributes?.profile !== profile) return false;
@@ -89,15 +113,21 @@ export default function CatalogPage() {
   return (
     <div className="mx-auto max-w-7xl px-4">
       <FadeIn>
-        <div className="mb-2">
+        <div className="mb-4">
           <h1 className="text-2xl font-bold text-text-primary">Объявления</h1>
           <p className="mt-1 text-sm text-text-secondary">
             Маркетплейс шин и дисков — магазины и частные продавцы
           </p>
-          {query && (
-            <p className="mt-1 text-sm text-primary">По запросу: «{query}»</p>
-          )}
         </div>
+      </FadeIn>
+
+      <FadeIn delay={0.04} className="mb-4">
+        <SearchBar inline />
+        {query && (
+          <p className="mt-2 text-sm text-primary">
+            Найдено по запросу «{query}»: {filteredListings.length}
+          </p>
+        )}
       </FadeIn>
 
       <FadeIn delay={0.05}>
@@ -272,7 +302,7 @@ export default function CatalogPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="card flex flex-col items-center justify-center py-16 text-center"
               >
-                <span className="text-4xl opacity-40">🔍</span>
+                <Search className="h-10 w-10 text-primary/25" strokeWidth={1.5} />
                 <p className="mt-4 font-medium text-text-primary">Объявления не найдены</p>
                 <p className="mt-1 text-sm text-text-secondary">Измените фильтры или разместите своё</p>
               </motion.div>
