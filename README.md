@@ -1,62 +1,42 @@
 # TireHub
 
-Маркетплейс шин и дисков — платформа для магазинов и частных продавцов (модель Авито / Дром).
+Маркетплейс шин и дисков - здесь можно купить и продать комплекты у магазинов и частных продавцов. По формату это объявления, как на Авито или Дроме: разместили лот, нашли покупателя, связались по телефону или оформили заказ на сайте.
 
-## Концепция
+## Возможности
 
-TireHub
-- **Магазины** размещают объявления с каталогом шин и дисков
-- **Частники** продают б/у и новые комплекты
-- Покупатели фильтруют по городу, продавцу, состоянию, разболтовке
-- Связь с продавцом по телефону или через корзину
+- Магазины и частники размещают объявления с фото, ценой, городом и характеристиками (размер, сезон, разболтовка и т.д.)
+- Покупатели ищут по фильтрам, смотрят профиль продавца, кладут товары в корзину или звонят напрямую
+- Есть гараж (ваши автомобили), личный кабинет с аватаром, партнёры на карте (ПВЗ и шиномонтажи)
+- При регистрации вы выбираете тип аккаунта: **частник** или **магазин**
+- Регион по умолчанию - **Красноярск**. В личном кабинете можно определить город по GPS
 
-## Архитектура
+## Как запустить
 
-```
-TireHub/
-├── apps/
-│   ├── web/                    # Next.js — маркетплейс UI
-│   ├── core-service/           # Auth, роли, уведомления
-│   ├── catalog-service/        # Products + Listings API
-│   ├── consumer-service/       # Корзина, заказы, гараж
-│   └── recommendation-service/ # Рекомендации, погода
-├── packages/shared/            # Seller, Listing, типы маркетплейса
-└── database/init.sql           # sellers, listings, products
-```
+Для работы нужны Docker (PostgreSQL) и backend `core-service` - без них вход и регистрация не работают. Сначала поднимите Docker, затем core на порту **3001**, затем сайт на **3000**.
 
-## Модель данных маркетплейса
-
-| Сущность | Описание |
-|----------|----------|
-| `sellers` | Магазин или частное лицо |
-| `listings` | Объявление: цена, город, состояние, фото, характеристики |
-| `products` | Справочник / шаблоны (опционально) |
-| `partners` | ПВЗ и шиномонтажи на карте |
-
-## Стек
-
-| Слой | Технологии |
-|------|------------|
-| Frontend | Next.js, Tailwind, Zustand, React Query, Framer Motion |
-| Backend | NestJS, TypeScript |
-| БД | PostgreSQL, Redis, Elasticsearch |
-| Очереди | RabbitMQ |
-
-## Быстрый старт
-
-```bash
+```powershell
+# Docker Desktop должен быть запущен
+docker compose down -v
 docker compose up -d
+
+# Подождите несколько секунд, пока postgres поднимется, и проверьте демо-аккаунты:
+docker exec tirehub-postgres psql -U tirehub -d tirehub -c "SELECT email, role FROM users;"
+
 npm install
-npm run dev:web          # http://localhost:3000
-npm run dev:core         # Auth API :3001
-npm run dev:catalog      # Listings API :3002/api/listings
+npm run build --workspace=@tirehub/shared
+npm run build --workspace=@tirehub/core-service
+
+# Два терминала - сначала core, потом web
+npm run start:prod --workspace=@tirehub/core-service
+npm run dev:web
 ```
 
-> После изменений схемы БД: `docker compose down -v && docker compose up -d`
+Сайт: http://localhost:3000  
+Вход: http://localhost:3000/login  
 
-## Аккаунты и геолокация
+Если вы меняли `database/init.sql`, снова выполните `docker compose down -v` и поднимите контейнеры заново - иначе seed-пользователи могут не появиться. Не запускайте web раньше core: иначе Next.js может занять порт 3001, и авторизация сломается.
 
-Регион по умолчанию — **Красноярск** (56.0153, 92.8932). GPS-определение доступно в личном кабинете.
+## Демо-аккаунты
 
 | Email | Пароль | Роль |
 |-------|--------|------|
@@ -64,39 +44,17 @@ npm run dev:catalog      # Listings API :3002/api/listings
 | shop@tirehub.ru | demo1234 | Магазин |
 | private@tirehub.ru | demo1234 | Частник |
 
-При регистрации выбирается тип: **частник** (имя, фамилия) или **магазин** (название, адрес, описание). Данные гаража и объявлений сохраняются в аккаунте.
+## Основные страницы
 
-## Ключевые страницы
+- `/catalog` - объявления и фильтры  
+- `/listings/new` - разместить объявление (с фото)  
+- `/listings/my` - ваши объявления  
+- `/account` - личный кабинет, аватар, геолокация  
+- `/garage` - гараж  
+- `/partners` - партнёры  
+- `/login` и `/register` - вход и регистрация  
+- `/admin` - админ-панель (только для admin)
 
-| URL | Описание |
-|-----|----------|
-| `/catalog` | Все объявления с фильтрами |
-| `/listing/[id]` | Карточка объявления |
-| `/seller/[id]` | Профиль продавца |
-| `/listings/new` | Разместить объявление |
-| `/listings/my` | Мои объявления |
-| `/login` | Вход |
-| `/register` | Регистрация (частник / магазин) |
-| `/account` | Личный кабинет |
-| `/admin` | Админ-панель |
+## Стек
 
-## API Auth (core-service)
-
-| Method | Path | Описание |
-|--------|------|----------|
-| POST | `/auth/register` | Регистрация (private / shop) |
-| POST | `/auth/login` | Вход |
-| GET | `/auth/me` | Профиль (Bearer token) |
-| GET | `/admin/stats` | Статистика (admin) |
-| GET | `/admin/sellers` | Список продавцов (admin) |
-| PATCH | `/admin/sellers/:id/verify` | Верификация магазина (admin) |
-
-## API Listings (catalog-service)
-
-| Method | Path | Описание |
-|--------|------|----------|
-| GET | `/api/listings` | Список объявлений |
-| GET | `/api/listings/:id` | Объявление |
-| POST | `/api/listings` | Создать объявление |
-| GET | `/api/listings/sellers` | Все продавцы |
-| GET | `/api/listings/sellers/:id/listings` | Объявления продавца |
+Фронтенд - Next.js (Tailwind, Zustand). Бэкенд - NestJS-сервисы (auth, каталог, заказы). База данных - PostgreSQL, плюс Redis / Elasticsearch / RabbitMQ для инфраструктуры. Общие типы находятся в `packages/shared`, схема и сиды - в `database/init.sql`.
