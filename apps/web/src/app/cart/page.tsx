@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Minus,
@@ -10,9 +9,11 @@ import {
   Trash2,
   ShoppingBag,
   ArrowRight,
+  Disc3,
 } from 'lucide-react';
 import { useCartStore } from '@/stores';
 import { formatPrice } from '@/lib/format';
+import { ListingImage } from '@/components/listings/listing-image';
 import { FadeIn } from '@/components/ui/motion';
 
 export default function CartPage() {
@@ -81,7 +82,7 @@ export default function CartPage() {
             >
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-button bg-gray-100">
                 {item.imageUrl ? (
-                  <Image
+                  <ListingImage
                     src={item.imageUrl}
                     alt={item.name}
                     fill
@@ -89,7 +90,9 @@ export default function CartPage() {
                     sizes="64px"
                   />
                 ) : (
-                  <div className="flex h-full items-center justify-center text-2xl">🛞</div>
+                  <div className="flex h-full items-center justify-center text-primary/30">
+                    <Disc3 className="h-7 w-7" strokeWidth={1.5} />
+                  </div>
                 )}
               </div>
               <div className="min-w-0 flex-1">

@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -18,6 +17,7 @@ import type { Listing } from '@tirehub/shared';
 import { useCartStore, useAddedToCart } from '@/stores';
 import { formatPrice } from '@/lib/format';
 import { formatListingDate } from '@/lib/marketplace';
+import { ListingImage } from '@/components/listings/listing-image';
 import { springTransition } from '@/components/ui/motion';
 import clsx from 'clsx';
 
@@ -78,7 +78,7 @@ export function ListingCard({ listing, compact }: ListingCardProps) {
             </span>
           )}
           {imageUrl && (
-            <Image
+            <ListingImage
               src={imageUrl}
               alt={listing.title}
               fill

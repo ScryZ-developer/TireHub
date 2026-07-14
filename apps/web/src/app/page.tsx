@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Plus, Store, User } from 'lucide-react';
+import { ArrowRight, Plus, Store, User, Disc3, CircleDot, Megaphone } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { SearchBar } from '@/components/search/search-bar';
 import { WeatherWidget, WeatherWidgetSkeleton } from '@/components/weather/weather-widget';
 import { ListingCard } from '@/components/listings/listing-card';
@@ -30,7 +31,7 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4">
-      <FadeIn className="-mt-2 mb-6">
+      <FadeIn className="mb-6">
         <SearchBar />
       </FadeIn>
 
@@ -97,21 +98,46 @@ export default function HomePage() {
       </section>
 
       <StaggerGrid className="grid gap-4 md:grid-cols-3">
-        {[
-          { href: '/catalog?type=tire', emoji: '🛞', title: 'Шины', desc: 'От магазинов и частников по всей России' },
-          { href: '/catalog?type=wheel', emoji: '⭕', title: 'Диски', desc: 'Фильтр по разболтовке и диаметру' },
-          { href: '/listings/new', emoji: '📢', title: 'Продать', desc: 'Разместите объявление бесплатно за 2 минуты' },
-        ].map((card) => (
-          <StaggerItem key={card.href}>
-            <ScaleOnHover>
-              <Link href={card.href} className="card block p-6">
-                <motion.span className="inline-block text-3xl" whileHover={{ scale: 1.15 }}>{card.emoji}</motion.span>
-                <h3 className="mt-3 text-lg font-bold text-text-primary">{card.title}</h3>
-                <p className="mt-1 text-sm text-text-secondary">{card.desc}</p>
-              </Link>
-            </ScaleOnHover>
-          </StaggerItem>
-        ))}
+        {(
+          [
+            {
+              href: '/catalog?type=tire',
+              icon: Disc3,
+              title: 'Шины',
+              desc: 'От магазинов и частников по всей России',
+            },
+            {
+              href: '/catalog?type=wheel',
+              icon: CircleDot,
+              title: 'Диски',
+              desc: 'Фильтр по разболтовке и диаметру',
+            },
+            {
+              href: '/listings/new',
+              icon: Megaphone,
+              title: 'Продать',
+              desc: 'Разместите объявление бесплатно за 2 минуты',
+            },
+          ] as { href: string; icon: LucideIcon; title: string; desc: string }[]
+        ).map((card) => {
+          const Icon = card.icon;
+          return (
+            <StaggerItem key={card.href}>
+              <ScaleOnHover>
+                <Link href={card.href} className="card block p-6">
+                  <motion.span
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"
+                    whileHover={{ scale: 1.08 }}
+                  >
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </motion.span>
+                  <h3 className="mt-3 text-lg font-bold text-text-primary">{card.title}</h3>
+                  <p className="mt-1 text-sm text-text-secondary">{card.desc}</p>
+                </Link>
+              </ScaleOnHover>
+            </StaggerItem>
+          );
+        })}
       </StaggerGrid>
     </div>
   );

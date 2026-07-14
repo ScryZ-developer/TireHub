@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ['latin', 'cyrillic'] });
 export const metadata: Metadata = {
   title: 'TireHub — Маркетплейс шин и дисков',
   description: 'Покупайте и продавайте шины и диски — магазины и частные объявления по всей России',
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+  },
 };
 
 export default function RootLayout({
@@ -21,7 +24,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <Header />
-          <main className="min-h-screen pb-8">{children}</main>
+          <main className="min-h-screen pt-8 pb-12 md:pt-10">{children}</main>
         </Providers>
       </body>
     </html>

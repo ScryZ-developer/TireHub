@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, ClipboardList } from 'lucide-react';
 import { useAuthStore, useMyListingsStore } from '@/stores';
 import { ListingCard } from '@/components/listings/listing-card';
 import { formatPrice } from '@/lib/format';
@@ -43,7 +43,7 @@ export default function MyListingsPage() {
       {listings.length === 0 ? (
         <FadeIn delay={0.1}>
           <div className="card mt-8 flex flex-col items-center py-16 text-center">
-            <p className="text-4xl opacity-30">📋</p>
+            <ClipboardList className="h-12 w-12 text-primary/25" strokeWidth={1.5} />
             <p className="mt-4 font-medium text-text-primary">У вас пока нет объявлений</p>
             <p className="mt-1 text-sm text-text-secondary">
               Разместите первое объявление — это бесплатно

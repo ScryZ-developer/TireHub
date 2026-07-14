@@ -1,14 +1,15 @@
 'use client';
 
+import { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, Eye, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { ListingCondition } from '@tirehub/shared';
 import { getListingById, formatListingDate } from '@/lib/marketplace';
 import { SellerBadge } from '@/components/listings/listing-card';
-import { useCartStore } from '@/stores';
+import { ListingImage } from '@/components/listings/listing-image';
+import { useAuthStore, useCartStore, useMyListingsStore } from '@/stores';
 import { formatPrice } from '@/lib/format';
 import { FadeIn } from '@/components/ui/motion';
 
@@ -16,7 +17,17 @@ export default function ListingDetailPage() {
   const params = useParams();
   const router = useRouter();
   const addItem = useCartStore((s) => s.addItem);
-  const listing = getListingById(params.id as string);
+  const userId = useAuthStore((s) => s.user?.id);
+  const getListings = useMyListingsStore((s) => s.getListings);
+  const [activeImage, setActiveImage] = useState(0);
+
+  const listing = useMemo(() => {
+    const id = params.id as string;
+    const fromMock = getListingById(id);
+    if (fromMock) return fromMock;
+    if (!userId) return undefined;
+    return getListings(userId).find((l) => l.id === id);
+  }, [params.id, userId, getListings]);
 
   if (!listing) {
     return (
@@ -30,6 +41,8 @@ export default function ListingDetailPage() {
   }
 
   const seller = listing.seller;
+  const images = listing.imageUrls.length > 0 ? listing.imageUrls : [];
+  const current = images[Math.min(activeImage, Math.max(0, images.length - 1))];
 
   return (
     <div className="mx-auto max-w-5xl px-4 pb-12">
@@ -44,25 +57,41 @@ export default function ListingDetailPage() {
       </FadeIn>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="card relative aspect-square overflow-hidden"
-        >
-          {listing.imageUrls[0] && (
-            <Image
-              src={listing.imageUrls[0]}
-              alt={listing.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              priority
-            />
-          )}
-          {listing.condition === ListingCondition.USED && (
-            <span className="absolute left-4 top-4 rounded-chip bg-accent px-3 py-1 text-sm font-medium text-white">
-              Б/у
-            </span>
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+          <div className="card relative aspect-square overflow-hidden">
+            {current && (
+              <ListingImage
+                src={current}
+                alt={listing.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+              />
+            )}
+            {listing.condition === ListingCondition.USED && (
+              <span className="absolute left-4 top-4 rounded-chip bg-accent px-3 py-1 text-sm font-medium text-white">
+                Б/у
+              </span>
+            )}
+          </div>
+          {images.length > 1 && (
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+              {images.map((src, i) => (
+                <button
+                  key={`${i}-${src.slice(0, 24)}`}
+                  type="button"
+                  onClick={() => setActiveImage(i)}
+                  className={
+                    i === activeImage
+                      ? 'relative h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-2 ring-primary'
+                      : 'relative h-16 w-16 shrink-0 overflow-hidden rounded-lg ring-1 ring-gray-200 opacity-80 hover:opacity-100'
+                  }
+                >
+                  <ListingImage src={src} alt="" fill className="object-cover" sizes="64px" />
+                </button>
+              ))}
+            </div>
           )}
         </motion.div>
 
