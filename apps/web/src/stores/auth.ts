@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AccountType, AuthResponse, User } from '@tirehub/shared';
+import type { AuthResponse, User } from '@tirehub/shared';
 import type { RegisterPayload } from '@/lib/api';
 import { api } from '@/lib/api';
 
@@ -15,8 +15,24 @@ interface AuthState {
   register: (data: RegisterData) => Promise<void>;
   logout: () => void;
   fetchMe: () => Promise<void>;
+  setAvatar: (url: string | null) => void;
   clearError: () => void;
   isAuthenticated: () => boolean;
+}
+
+function withAvatar(user: User, avatarUrl?: string | null): User {
+  const next: User = {
+    ...user,
+    avatarUrl: avatarUrl || undefined,
+    seller: user.seller
+      ? { ...user.seller, avatarUrl: avatarUrl || undefined }
+      : user.seller,
+  };
+  if (!avatarUrl) {
+    delete next.avatarUrl;
+    if (next.seller) delete next.seller.avatarUrl;
+  }
+  return next;
 }
 
 function applyAuth(set: (partial: Partial<AuthState>) => void, data: AuthResponse) {
@@ -62,12 +78,20 @@ export const useAuthStore = create<AuthState>()(
       fetchMe: async () => {
         const token = get().token;
         if (!token) return;
+        const previousAvatar =
+          get().user?.avatarUrl ?? get().user?.seller?.avatarUrl;
         try {
           const user = await api.auth.me(token);
-          if (user) set({ user });
+          if (user) set({ user: withAvatar(user, previousAvatar) });
         } catch {
           set({ user: null, token: null });
         }
+      },
+
+      setAvatar: (url) => {
+        const user = get().user;
+        if (!user) return;
+        set({ user: withAvatar(user, url) });
       },
 
       clearError: () => set({ error: null }),
