@@ -4,6 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE user_role AS ENUM ('buyer', 'admin', 'partner', 'seller');
 CREATE TYPE product_type AS ENUM ('tire', 'wheel');
+CREATE TYPE tire_season AS ENUM ('summer', 'winter', 'all_season');
 CREATE TYPE order_status AS ENUM ('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled');
 CREATE TYPE partner_type AS ENUM ('store', 'tire_service', 'pickup_point');
 CREATE TYPE seller_type AS ENUM ('shop', 'private');
