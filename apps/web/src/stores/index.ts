@@ -15,6 +15,8 @@ interface CartItem {
 
 interface CartState {
   items: CartItem[];
+  ownerId: string | null;
+  bindUser: (userId: string | null) => void;
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
   removeItem: (listingId: string) => void;
   updateQuantity: (listingId: string, quantity: number) => void;
@@ -28,6 +30,14 @@ export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      ownerId: null,
+
+      bindUser: (userId) => {
+        const current = get().ownerId;
+        if (current === userId) return;
+        set({ ownerId: userId, items: [] });
+      },
+
       addItem: (item, quantity = 1) => {
         set((state) => {
           const existing = state.items.find((i) => i.listingId === item.listingId);
@@ -72,7 +82,7 @@ export const useCartStore = create<CartState>()(
         return Array.from(groups.values());
       },
     }),
-    { name: 'tirehub-cart-v2' },
+    { name: 'tirehub-cart-v3' },
   ),
 );
 
