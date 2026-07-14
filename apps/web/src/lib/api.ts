@@ -29,19 +29,27 @@ function authHeaders(token?: string | null): HeadersInit {
 }
 
 async function fetchApi<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, {
-    ...options,
-    headers: {
-      ...authHeaders(),
-      ...options?.headers,
-    },
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
 
-  if (!res.ok) {
-    throw new Error(`API error: ${res.status}`);
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      headers: {
+        ...authHeaders(),
+        ...options?.headers,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`API error: ${res.status}`);
+    }
+
+    return res.json();
+  } finally {
+    clearTimeout(timer);
   }
-
-  return res.json();
 }
 
 export const api = {
@@ -63,13 +71,19 @@ export const api = {
         }),
       }),
 
-    me: (token: string) =>
-      fetch(`${API_BASE.core}/auth/me`, {
+    me: (token: string) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      return fetch(`${API_BASE.core}/auth/me`, {
         headers: authHeaders(token),
-      }).then(async (res) => {
-        if (!res.ok) throw new Error('unauthorized');
-        return res.json() as Promise<User>;
-      }),
+        signal: controller.signal,
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error('unauthorized');
+          return res.json() as Promise<User>;
+        })
+        .finally(() => clearTimeout(timer));
+    },
   },
 
   admin: {
