@@ -49,7 +49,7 @@ export const MOCK_SELLERS: Seller[] = [
     address: 'ул. Вавилова, 1',
     latitude: 56.005,
     longitude: 92.85,
-    description: 'Литые и штампованные диски всех размеров.',
+    description: 'Диски BBS, HRE, Vossen, OZ Racing — премиум и спорт.',
     rating: 4.7,
     listingsCount: 6,
     isVerified: true,
@@ -119,9 +119,10 @@ const sellerAssignment = [
   'seller-5', 'seller-2', 'seller-1', 'seller-6', 'seller-5',
   'seller-3', 'seller-2', 'seller-3', 'seller-7', 'seller-3',
   'seller-6', 'seller-2', 'seller-7', 'seller-3', 'seller-6',
+  'seller-1', 'seller-3', 'seller-2', 'seller-6', 'seller-3',
 ];
 
-const cities = Array(20).fill('Красноярск') as string[];
+const cities = Array(25).fill('Красноярск') as string[];
 
 export const CITIES = [
   'Красноярск',
@@ -138,11 +139,20 @@ const conditions: ListingCondition[] = [
   ListingCondition.NEW, ListingCondition.USED, ListingCondition.NEW, ListingCondition.NEW,
   ListingCondition.NEW, ListingCondition.USED, ListingCondition.NEW, ListingCondition.NEW,
   ListingCondition.NEW, ListingCondition.USED, ListingCondition.NEW, ListingCondition.NEW,
+  ListingCondition.NEW, ListingCondition.NEW, ListingCondition.USED, ListingCondition.NEW, ListingCondition.NEW,
 ];
 
-const priceVariance = [0, -800, 200, 0, -1200, -600, 150, 300, 500, -400, 0, 100, -200, -1500, 400, 0, 50, -900, 250, 180];
+const priceVariance = [
+  0, -800, 200, 0, -1200, -600, 150, 300, 500, -400,
+  0, 100, -200, -1500, 400, 0, 50, -900, 250, 180,
+  0, -2000, 1200, -500, 300,
+];
 
-const daysAgo = [1, 3, 5, 2, 7, 14, 4, 6, 10, 21, 3, 8, 12, 2, 15, 9, 4, 5, 11, 6];
+const daysAgo = [
+  1, 3, 5, 2, 7, 14, 4, 6, 10, 21,
+  3, 8, 12, 2, 15, 9, 4, 5, 11, 6,
+  1, 2, 8, 3, 5,
+];
 
 function daysAgoDate(days: number) {
   const d = new Date();
